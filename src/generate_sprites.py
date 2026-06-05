@@ -256,7 +256,7 @@ def create_sprite(state, frame_idx, size=128):
         
     return img.resize((size, size), resampling_filter)
 
-def generate_all_sprites(output_dir="assets", size=128):
+def generate_all(output_dir="assets", size=128):
     """
     Generates all frames for all states and saves them to output_dir.
     """
@@ -331,6 +331,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DaemonSprite procedural asset generator.")
     parser.add_argument("--output-dir", default="assets", help="Target directory for generated sprites.")
     parser.add_argument("--size", type=int, default=128, help="Size of output square images (e.g. 128 or 256).")
+    parser.add_argument("--palette", default=None, help="Hex color code or predefined palette name.")
     parser.add_argument("--verify", action="store_true", help="Run verification check on existing files instead of generating.")
     
     args = parser.parse_args()
@@ -339,7 +340,6 @@ if __name__ == "__main__":
         success = verify_sprites(args.output_dir, args.size)
         sys.exit(0 if success else 1)
     else:
-        generate_all_sprites(args.output_dir, args.size)
-        # Run verification automatically after generation
+        generate_all(args.output_dir, args.size)
         success = verify_sprites(args.output_dir, args.size)
         sys.exit(0 if success else 1)
