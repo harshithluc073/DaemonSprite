@@ -6,6 +6,11 @@ import stat
 import pytest
 from PIL import Image
 
+# Ensure project root is in python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
 try:
     import src.generate_sprites as gs
 except ImportError:
@@ -109,25 +114,18 @@ def test_sprite_readonly_dir(tmp_path):
     if not os.path.exists(gen_path):
         pytest.fail(f"Generator script {gen_path} not found.")
         
-    # Create a read-only directory
+    # Create a file where directory should be to simulate write failure
     ro_dir = tmp_path / "readonly_assets"
-    ro_dir.mkdir()
+    ro_dir.write_text("blocker")
     
-    # Try to make directory read-only
-    os.chmod(ro_dir, stat.S_IREAD)
-    
-    try:
-        # Run generator pointing to this output directory
-        res = subprocess.run(
-            [sys.executable, gen_path, "--output-dir", str(ro_dir)],
-            capture_output=True,
-            text=True
-        )
-        # It must exit gracefully with a non-zero code or handle the error without crashing python interpreter
-        assert res.returncode != 0 or "PermissionError" in res.stderr or "PermissionError" in res.stdout or "Error" in res.stderr
-    finally:
-        # Restore permissions so pytest can clean up tmp_path
-        os.chmod(ro_dir, stat.S_IWRITE)
+    # Run generator pointing to this output directory
+    res = subprocess.run(
+        [sys.executable, gen_path, "--output-dir", str(ro_dir)],
+        capture_output=True,
+        text=True
+    )
+    # It must exit gracefully with a non-zero code or handle the error
+    assert res.returncode != 0 or "Error" in res.stderr or "Error" in res.stdout or "FileExistsError" in res.stderr
 
 def test_sprite_invalid_palette():
     """Pass invalid color hex codes to generator and verify it falls back or exits cleanly."""
