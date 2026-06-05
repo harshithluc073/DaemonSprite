@@ -260,6 +260,12 @@ def generate_all(output_dir="assets", size=128):
     """
     Generates all frames for all states and saves them to output_dir.
     """
+    import stat
+    if os.path.exists(output_dir):
+        mode = os.stat(output_dir).st_mode
+        if not (mode & stat.S_IWRITE):
+            raise PermissionError(f"Permission denied: {output_dir} is read-only")
+
     states = {
         "idle": 4,
         "thinking": 4,
@@ -269,6 +275,10 @@ def generate_all(output_dir="assets", size=128):
     }
     
     os.makedirs(output_dir, exist_ok=True)
+    import stat
+    mode = os.stat(output_dir).st_mode
+    if not (mode & stat.S_IWRITE):
+        raise PermissionError(f"Permission denied: Directory '{output_dir}' is write-protected.")
     
     for state, num_frames in states.items():
         for i in range(num_frames):
